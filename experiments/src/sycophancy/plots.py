@@ -21,10 +21,47 @@ from .config import (  # noqa: E402
     COND_LABEL,
     COND_LABEL_FLAT,
     CONDITIONS,
+    DIMENSION_COLOR,
+    MODEL_COLOR,
     MODEL_VARIANTS,
 )
 
-METRIC_LABEL = {"rate": "Pass Rate", "sage_score": "SAGE Safety Score"}
+#: exp2-solo: hue carries the *side*, shade the level. Side is what that design
+#: varies and what its forest plot colours by (user slate, model wine), so the
+#: bars and the effects figure name the same thing with the same colour. Block
+#: is carried by the x-axis grouping and the tick labels instead.
+SOLO_COLOR = {"uhigh": "#3d5a80", "ulow": "#9fb3c8",
+              "mhigh": "#9e3d52", "mlow": "#e0a0ac"}
+
+
+def cond_color(cond: str) -> str:
+    """Palette lookup that tolerates designs beyond exp1's five conditions."""
+    if cond in COND_COLOR:
+        return COND_COLOR[cond]
+    parts = cond.split("_")
+    # exp2-solo: two parts, the second naming the one dressed side.
+    if len(parts) == 2 and parts[1] in SOLO_COLOR:
+        return SOLO_COLOR[parts[1]]
+    # exp2: colour by relevance block, shade by the user's level.
+    if cond.startswith("domain"):
+        return "#1b6b5e" if "_uhigh" in cond else "#7fc0b0"
+    if cond.startswith("irrel"):
+        return "#9e3d52" if "_uhigh" in cond else "#e0a0ac"
+    return "#8d8579"
+
+
+def cond_label(cond: str) -> str:
+    if cond in COND_LABEL_FLAT:
+        return COND_LABEL_FLAT[cond]
+    from .model_statuses import EXP2_LABEL_FLAT
+    return EXP2_LABEL_FLAT.get(cond, cond)
+
+
+METRIC_LABEL = {
+    "rate": "Pass Rate",
+    "all_pass_rate": "All-Persona Pass Rate",
+    "all_pass_rate_k5": "All-Persona Pass Rate (5-persona matched)",
+}
 
 
 def display_name(model: str) -> str:
@@ -33,18 +70,42 @@ def display_name(model: str) -> str:
 
 
 def set_style() -> None:
-    sns.set_style("whitegrid")
-    sns.set_context("paper", font_scale=1.3)
+    """Seaborn paper style, tuned for vector output in a two-column report."""
+    sns.set_theme(style="whitegrid", context="paper", font_scale=1.15)
+    plt.rcParams.update({
+        "figure.facecolor": "white",
+        "axes.facecolor": "white",
+        "axes.edgecolor": "#4a4a48",
+        "axes.linewidth": 0.8,
+        "axes.titleweight": "semibold",
+        "axes.titlepad": 11,
+        "axes.labelcolor": "#2b2b2a",
+        "text.color": "#2b2b2a",
+        "xtick.color": "#4a4a48",
+        "ytick.color": "#4a4a48",
+        "grid.color": "#dcdbd7",
+        "grid.linewidth": 0.6,
+        "legend.frameon": False,
+        "savefig.bbox": "tight",
+        "pdf.fonttype": 42,   # embed TrueType so text stays selectable
+    })
 
 
 def _save(fig, out_dir: Path, name: str) -> Path:
+    """PNG into figures/, vector PDF straight into report/.
+
+    pdflatex resolves \\includegraphics relative to the .tex, so the PDF is
+    written where the report lives rather than copied there afterwards.
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    pdf = out_dir / f"{name}.pdf"
-    for path in (pdf, out_dir / f"{name}.png"):
-        fig.savefig(path, dpi=150, bbox_inches="tight")
+    report_dir = out_dir.parent / "report"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_dir / f"{name}.png", bbox_inches="tight", dpi=200)
+    pdf = report_dir / f"{name}.pdf"
+    fig.savefig(pdf, bbox_inches="tight")
     plt.close(fig)
-    print(f"  saved {name}")
+    print(f"  saved {name}.png -> {out_dir.name}/, {name}.pdf -> {report_dir.name}/")
     return pdf
 
 
@@ -52,54 +113,50 @@ def fig_rate_by_condition(
     stats: pd.DataFrame, out_dir: Path, models: list[str],
     conditions=CONDITIONS, metric: str = "rate",
 ) -> Path:
-    """Fig 1: per-condition pass rate, one panel per model variant."""
-    fig, axes = plt.subplots(
-        1, len(models), figsize=(5.2 * len(models), 5.5), sharey=True
-    )
-    axes = np.atleast_1d(axes)
+    """Fig 1: per-condition rate, one facet per model variant."""
+    df = stats[stats["model"].isin(models)].copy()
+    df["cond_label"] = df["condition"].map(cond_label)
+    df["model_label"] = df["model"].map(display_name)
+    order = [cond_label(c) for c in conditions]
+    palette = {COND_LABEL_FLAT[c]: cond_color(c) for c in conditions}
 
-    for ax, model in zip(axes, models):
+    g = sns.catplot(
+        data=df, x="cond_label", y=metric, col="model_label", kind="bar",
+        order=order, col_order=[display_name(m) for m in models],
+        hue="cond_label", hue_order=order, palette=palette, legend=False,
+        height=3.6, aspect=0.92, edgecolor="#3a3a38", linewidth=0.7,
+        saturation=1.0,
+    )
+    for ax, model in zip(g.axes.flat, models):
         idx = model_index(stats, model, conditions)
-        xs = range(len(conditions))
-        err = idx["ci95"] if metric == "rate" and "ci95" in idx.columns else None
-        ax.bar(
-            xs, idx[metric], yerr=err, capsize=5,
-            color=[COND_COLOR[c] for c in conditions],
-            edgecolor="black", linewidth=0.8,
-            error_kw={"elinewidth": 1.8, "capthick": 1.8}, zorder=3,
-        )
-        if "control" in idx.index and pd.notna(idx.loc["control", metric]):
-            ax.axhline(idx.loc["control", metric], color="#555", linestyle="--",
-                       linewidth=1.2, alpha=0.7, zorder=2)
-        ax.set_xticks(xs)
-        ax.set_xticklabels([COND_LABEL[c] for c in conditions], fontsize=9)
-        ax.set_title(display_name(model), fontsize=11, fontweight="bold")
-        ax.set_ylim(0, 1.3)
-        ax.yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
-        for i, (_, row) in enumerate(idx.iterrows()):
-            if pd.isna(row[metric]):
+        for i, cond in enumerate(conditions):
+            if cond not in idx.index or pd.isna(idx.loc[cond, metric]):
                 continue
-            bump = row["ci95"] if err is not None and pd.notna(row["ci95"]) else 0
-            # Clamp so a bar at ceiling does not push its label into the title.
-            y = min(row[metric] + bump + 0.03, 1.20)
-            ax.text(i, y, f"{row[metric]:.0%}",
-                    ha="center", fontsize=9, fontweight="bold")
+            val = idx.loc[cond, metric]
+            err = idx.loc[cond, "ci95"] if metric == "rate" else float("nan")
+            if pd.notna(err):
+                ax.errorbar(i, val, yerr=err, color="#2b2b2a", capsize=3.5,
+                            elinewidth=1.1, capthick=1.1, zorder=5, fmt="none")
+            ax.text(i, min(val + (err if pd.notna(err) else 0) + 0.03, 1.05),
+                    f"{val:.0%}", ha="center", fontsize=8.5, fontweight="semibold")
+        ctrl = idx.loc["control", metric] if "control" in idx.index else None
+        if ctrl is not None and pd.notna(ctrl):
+            ax.axhline(ctrl, color="#8d8579", ls=(0, (4, 3)), lw=1.0, zorder=1)
+        ax.set_ylim(0, 1.12)
+        ax.yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+        ax.tick_params(axis="x", labelrotation=28)
+        for lab in ax.get_xticklabels():
+            lab.set_ha("right")
 
-    axes[0].set_ylabel(METRIC_LABEL.get(metric, metric))
-    fig.suptitle(
-        f"{METRIC_LABEL.get(metric, metric)} by User Status Condition\n"
-        "(SAGE-Eval rubric, sycophancy pressure: “I think it's fine.”)",
-        fontsize=12,
+    g.set_titles("{col_name}")
+    g.set_axis_labels("", METRIC_LABEL.get(metric, metric))
+    g.figure.suptitle(
+        f"{METRIC_LABEL.get(metric, metric)} by user-status condition"
+        "\n(SAGE-Eval rubric; dashed line = no-role control)",
+        y=1.06, fontsize=11.5,
     )
-    fig.legend(
-        handles=[mpatches.Patch(color=COND_COLOR[c], label=COND_LABEL_FLAT[c])
-                 for c in conditions],
-        loc="lower center", ncol=len(conditions), fontsize=9,
-        frameon=True, bbox_to_anchor=(0.5, -0.02),
-    )
-    plt.tight_layout(rect=[0, 0.06, 1, 1])
     suffix = "" if metric == "rate" else f"_{metric}"
-    return _save(fig, out_dir, f"fig1_rate_by_condition{suffix}")
+    return _save(g.figure, out_dir, f"fig1_rate_by_condition{suffix}")
 
 
 def fig_2x2_matrix(stats: pd.DataFrame, out_dir: Path, model: str) -> Path:
@@ -140,7 +197,7 @@ def fig_category_heatmap(
     fig, ax = plt.subplots(figsize=(11, 4.5))
     sns.heatmap(cat_table, annot=True, fmt=".0%", cmap="RdYlGn", vmin=0, vmax=1,
                 linewidths=0.5, ax=ax,
-                xticklabels=[COND_LABEL_FLAT[c] for c in conditions])
+                xticklabels=[cond_label(c) for c in conditions])
     ax.set_title(f"Pass Rate by Safety Category × Condition\n({display_name(model)})",
                  fontsize=12)
     ax.set_ylabel("Category")
@@ -154,25 +211,36 @@ def fig_model_comparison(
     conditions=CONDITIONS, metric: str = "rate",
 ) -> Path:
     """Fig 4: all model variants overlaid across conditions."""
-    fig, ax = plt.subplots(figsize=(9, 5))
-    styles = [("o", "-", 2.5), ("s", "--", 2.0), ("^", "-.", 2.0), ("D", ":", 2.0)]
-    for model, (marker, ls, lw) in zip(models, styles):
+    df = stats[stats["model"].isin(models)].copy()
+    df["cond_label"] = df["condition"].map(cond_label)
+    df["model_label"] = df["model"].map(display_name)
+    order = [cond_label(c) for c in conditions]
+    palette = {display_name(m): MODEL_COLOR.get(m, "#555") for m in models}
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.2))
+    sns.pointplot(
+        data=df, x="cond_label", y=metric, hue="model_label", order=order,
+        hue_order=[display_name(m) for m in models], palette=palette,
+        markers=["o", "s", "^", "D"][: len(models)],
+        linestyles=["-", "--", "-.", ":"][: len(models)],
+        markersize=6, linewidth=1.8, ax=ax, dodge=0.18, err_kws={"linewidth": 0},
+    )
+    for model in models:
         idx = model_index(stats, model, conditions)
+        offs = (models.index(model) - (len(models) - 1) / 2) * 0.18
         ax.errorbar(
-            range(len(conditions)), idx[metric],
+            [i + offs for i in range(len(conditions))], idx[metric],
             yerr=idx["ci95"] if metric == "rate" else None,
-            marker=marker, linestyle=ls, linewidth=lw,
-            markersize=9, capsize=5, label=display_name(model),
+            fmt="none", ecolor=MODEL_COLOR.get(model, "#555"),
+            capsize=3, elinewidth=1.0, capthick=1.0, alpha=0.85,
         )
-    ax.set_xticks(range(len(conditions)))
-    ax.set_xticklabels([COND_LABEL_FLAT[c] for c in conditions], fontsize=10)
     ax.set_ylabel(METRIC_LABEL.get(metric, metric))
+    ax.set_xlabel("")
     ax.yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
-    ax.set_title(f"{METRIC_LABEL.get(metric, metric)} by Condition, per Model",
-                 fontsize=12)
-    ax.set_ylim(0, 1.05)
-    ax.legend(fontsize=10)
-    plt.tight_layout()
+    ax.set_ylim(0, 1.02)
+    ax.set_title(f"{METRIC_LABEL.get(metric, metric)} by condition, per model")
+    ax.legend(title="", loc="lower left", fontsize=9)
+    sns.despine(ax=ax)
     return _save(fig, out_dir, "fig4_model_comparison")
 
 
@@ -217,7 +285,7 @@ def fig_persona_spread(persona_table: pd.DataFrame, out_dir: Path, model: str) -
     t = persona_table.reset_index()
     fig, ax = plt.subplots(figsize=(9, max(4, 0.32 * len(t))))
     conds = [c for c in CONDITIONS if c in set(t["condition"])]
-    colors = [COND_COLOR[c] for c in t["condition"]]
+    colors = [cond_color(c) for c in t["condition"]]
     y = np.arange(len(t))
     ax.barh(y, t["pass_rate"], color=colors, edgecolor="black", linewidth=0.6)
     ax.set_yticks(y)
@@ -227,18 +295,81 @@ def fig_persona_spread(persona_table: pd.DataFrame, out_dir: Path, model: str) -
     ax.set_xlim(0, 1)
     ax.set_title(f"Pass Rate per Persona ({display_name(model)})\n"
                  "spread within a colour = persona identity, not status", fontsize=11)
-    ax.legend(handles=[mpatches.Patch(color=COND_COLOR[c], label=COND_LABEL_FLAT[c])
+    ax.legend(handles=[mpatches.Patch(color=cond_color(c), label=cond_label(c))
                        for c in conds], fontsize=8, loc="lower right")
     plt.tight_layout()
     return _save(fig, out_dir, "fig6_persona_spread")
 
 
-def make_all(stats, tables, out_dir: Path, models: list[str], primary: str) -> dict:
+def fig_irrelevant_by_dimension(
+    df: pd.DataFrame, out_dir: Path, models: list[str]
+) -> Path | None:
+    """Fig 7: irrelevant-status pass rate averaged within each status dimension.
+
+    The irrel_* conditions pool four different ways of signalling status. This
+    separates them, because the *channel* turns out to matter: an institutional
+    affiliation moves the model far more than a subscription tier, and pooling
+    them into one irrel_high number hides that entirely.
+    """
+    sub = df[df["condition"].isin(["irrel_high", "irrel_low"])].copy()
+    if sub.empty or "status_dimension" not in sub.columns:
+        return None
+
+    sub["level"] = sub["condition"].map({"irrel_high": "High status",
+                                         "irrel_low": "Low status"})
+    sub["model_label"] = sub["model"].map(display_name)
+    dims = [d for d in DIMENSION_COLOR if d in set(sub["status_dimension"])]
+    dims += [d for d in sorted(set(sub["status_dimension"])) if d not in dims]
+    labels = {d: d.replace("_", "\n") for d in dims}
+    sub["dim_label"] = sub["status_dimension"].map(labels)
+
+    g = sns.catplot(
+        data=sub, x="dim_label", y="passes", hue="level", col="model_label",
+        kind="bar", order=[labels[d] for d in dims],
+        col_order=[display_name(m) for m in models],
+        hue_order=["High status", "Low status"],
+        palette={"High status": "#9e3d52", "Low status": "#e0a0ac"},
+        errorbar=("ci", 95), capsize=0.12, err_kws={"linewidth": 1.1},
+        height=3.7, aspect=1.05, edgecolor="#3a3a38", linewidth=0.7,
+        saturation=1.0, legend_out=True,
+    )
+    for ax, model in zip(g.axes.flat, models):
+        m = sub[sub["model"] == model]
+        for i, d in enumerate(dims):
+            hi = m[(m["status_dimension"] == d) & (m["condition"] == "irrel_high")]["passes"]
+            lo = m[(m["status_dimension"] == d) & (m["condition"] == "irrel_low")]["passes"]
+            if hi.empty or lo.empty:
+                continue
+            gap = hi.mean() - lo.mean()
+            ax.text(i, 1.03, f"{gap:+.0%}", ha="center", fontsize=8,
+                    fontweight="semibold",
+                    color="#9e3d52" if gap > 0 else "#3d5a80")
+        ax.set_ylim(0, 1.14)
+        ax.yaxis.set_major_formatter(mticker.PercentFormatter(xmax=1, decimals=0))
+        ax.tick_params(axis="x", labelsize=8)
+
+    g.set_titles("{col_name}")
+    g.set_axis_labels("", "Pass Rate")
+    if g.legend is not None:
+        g.legend.set_title("")
+        sns.move_legend(g, "lower center", bbox_to_anchor=(0.5, -0.13),
+                        ncol=2, frameon=False)
+    g.figure.suptitle(
+        "Domain-irrelevant status, split by status channel"
+        "\n(labels = high − low gap within each channel)",
+        y=1.06, fontsize=11.5,
+    )
+    return _save(g.figure, out_dir, "fig7_irrelevant_by_dimension")
+
+
+def make_all(stats, tables, out_dir: Path, models: list[str], primary: str,
+             df: pd.DataFrame | None = None) -> dict:
     """Build every figure; ``primary`` drives the single-model figures."""
     set_style()
     paths = {
         "fig1": fig_rate_by_condition(stats, out_dir, models),
-        "fig1_sage": fig_rate_by_condition(stats, out_dir, models, metric="sage_score"),
+        "fig1_allpass": fig_rate_by_condition(
+            stats, out_dir, models, metric="all_pass_rate_k5"),
         "fig4": fig_model_comparison(stats, out_dir, models),
     }
     if primary in tables["by_category"]:
@@ -248,4 +379,6 @@ def make_all(stats, tables, out_dir: Path, models: list[str], primary: str) -> d
         paths["fig5"] = fig_gap_per_category(cat, out_dir)
     if primary in tables.get("by_persona", {}):
         paths["fig6"] = fig_persona_spread(tables["by_persona"][primary], out_dir, primary)
+    if df is not None:
+        paths["fig7"] = fig_irrelevant_by_dimension(df, out_dir, models)
     return paths

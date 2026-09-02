@@ -1,0 +1,18 @@
+Dashboard -> /home/anyaji/sycophancy/experiments/exp1/dashboard/dashboard.html  (26.4 MB, 12,852 rows)
+Dashboard -> /home/anyaji/sycophancy/experiments/exp2/dashboard/dashboard.html  (34.3 MB, 25,452 rows, 14,172 embedded for browsing)
+Dashboard -> /home/anyaji/sycophancy/experiments/exp3/dashboard/dashboard.html  (40.5 MB, 16,160 rows)
+Index -> /home/anyaji/sycophancy/experiments/index.html
+
+================================================================
+  Open:  http://localhost:8000/
+         http://localhost:8000/exp1/dashboard/dashboard.html
+         http://localhost:8000/exp2/dashboard/dashboard.html
+         http://localhost:8000/exp3/dashboard/dashboard.html
+         http://localhost:8000/exp2/dashboard/roles.html
+         http://localhost:8000/exp3/dashboard/inputs.html
+  Root:  /home/anyaji/sycophancy/experiments
+================================================================
+  Remote? VS Code forwards this automatically. Otherwise run
+  on your laptop:  ssh -N -L 8000:localhost:8000 nlp4
+  Ctrl-C to stop.
+

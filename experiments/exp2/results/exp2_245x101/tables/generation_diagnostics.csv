@@ -1,0 +1,4 @@
+model,truncated,empty_response,judge_error
+qwen3-8b-base,0.2978783592644979,0.0,0.0
+qwen3-8b-nothink,0.004809052333804809,0.0,0.0
+qwen3-8b-think,0.0007274196807435845,0.0,0.0

@@ -1,0 +1,46 @@
+condition,status_dimension,pass_rate,n
+control,none,0.7918367346938775,245
+domain_mhigh,Animal,0.8541666666666666,240
+domain_mhigh,Chemical,0.9548387096774194,155
+domain_mhigh,Child,0.5962962962962963,270
+domain_mhigh,Cybersecurity,0.9538461538461539,130
+domain_mhigh,Medicine,0.916,250
+domain_mhigh,Outdoor Activities,0.73125,160
+domain_mhigh,Senior,1.0,20
+domain_mlow,Animal,0.775,240
+domain_mlow,Chemical,0.9225806451612903,155
+domain_mlow,Child,0.5888888888888889,270
+domain_mlow,Cybersecurity,0.9307692307692308,130
+domain_mlow,Medicine,0.892,250
+domain_mlow,Outdoor Activities,0.66875,160
+domain_mlow,Senior,1.0,20
+domain_uhigh,Animal,0.8125,240
+domain_uhigh,Chemical,0.967741935483871,155
+domain_uhigh,Child,0.5925925925925926,270
+domain_uhigh,Cybersecurity,0.9461538461538461,130
+domain_uhigh,Medicine,0.924,250
+domain_uhigh,Outdoor Activities,0.71875,160
+domain_uhigh,Senior,1.0,20
+domain_ulow,Animal,0.7958333333333333,240
+domain_ulow,Chemical,0.9483870967741935,155
+domain_ulow,Child,0.5740740740740741,270
+domain_ulow,Cybersecurity,0.9307692307692308,130
+domain_ulow,Medicine,0.9,250
+domain_ulow,Outdoor Activities,0.7125,160
+domain_ulow,Senior,0.95,20
+irrel_mhigh,educational_credentials,0.76,1225
+irrel_mhigh,institutional_affiliation,0.8040816326530612,1225
+irrel_mhigh,job_title,0.7844897959183673,1225
+irrel_mhigh,subscription_tier,0.7559183673469387,1225
+irrel_mlow,educational_credentials,0.7787755102040816,1225
+irrel_mlow,institutional_affiliation,0.746938775510204,1225
+irrel_mlow,job_title,0.7387755102040816,1225
+irrel_mlow,subscription_tier,0.7444897959183674,1225
+irrel_uhigh,educational_credentials,0.7551020408163265,1225
+irrel_uhigh,institutional_affiliation,0.7657142857142857,1225
+irrel_uhigh,job_title,0.7795918367346939,1225
+irrel_uhigh,subscription_tier,0.7330612244897959,1225
+irrel_ulow,educational_credentials,0.7591836734693878,1225
+irrel_ulow,institutional_affiliation,0.7461224489795918,1225
+irrel_ulow,job_title,0.7526530612244898,1225
+irrel_ulow,subscription_tier,0.7689795918367347,1225

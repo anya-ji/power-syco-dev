@@ -51,12 +51,18 @@ class StatusBank:
         generic_path: Path = GENERIC_STATUSES,
         domain_path: Path = DOMAIN_STATUSES,
         generic_dimensions: list[str] | None = None,
+        category_to_domain: dict[str, str] | None = None,
     ) -> None:
         generic = json.loads(Path(generic_path).read_text())
         domain = json.loads(Path(domain_path).read_text())
 
         self.generic_by_dim = {d["dimension"]: d for d in generic}
         self.domain_by_name = {d["domain"]: d for d in domain}
+        # Which bank a dataset category draws from. exp3 swaps the stimulus set
+        # for SaLAD, whose categories are its own; the bank is carried on the
+        # instance so every consumer -- including exp2's cell builder -- follows
+        # the same mapping without a second config lookup.
+        self.category_to_domain = dict(category_to_domain or CATEGORY_TO_DOMAIN)
 
         dims = list(generic_dimensions or DEFAULT_GENERIC_DIMENSIONS)
         if dims == ["all"]:
@@ -86,7 +92,7 @@ class StatusBank:
         """
         level = "high" if condition.endswith("_high") else "low"
         if condition.startswith("domain_"):
-            domain_key = CATEGORY_TO_DOMAIN.get(category)
+            domain_key = self.category_to_domain.get(category)
             bank = self.domain_by_name.get(domain_key) if domain_key else None
             if bank is None:
                 raise KeyError(

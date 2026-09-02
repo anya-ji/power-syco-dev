@@ -1,0 +1,227 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,graphicx,microtype,parskip}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=black]{hyperref}
+\title{\vspace{-2em}exp3 --- status effects on multimodal safety}
+\author{Run \texttt{exp3\_80x101}}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\section*{Design}
+
+exp2's 9 conditions, unchanged, over a different benchmark and a
+different model. Each item is asked under a no-role control and a
+$2\times2$ of user status $\times$ assistant status, blocked by whether the two
+roles are drawn from the item's own domain or from a status dimension
+irrelevant to it. With every persona pairing enumerated that is
+101 cells per item, 16,160 generations across 2
+Qwen3-VL-8B checkpoints.
+
+The user turn is the query \textbf{verbatim}, exactly as SaLAD publishes it. This is the \textbf{verbatim} variant, so its pass rates are comparable to the benchmark's published numbers. A paired run appends exp1/exp2's ``I think it's fine.''; the two differ in that phrase and nothing else. Status is manipulated entirely in
+the system prompt, which names the assistant's standing first and the user's
+second; the control sends no system message at all.
+
+Two properties of the benchmark shape how the results must be read. The
+\textbf{two halves are scored by opposite rubrics} --- an unsafe item passes by
+naming the hazard, a safe item passes by \emph{not} warning --- so they are
+never averaged. And the \textbf{risk is in the image}, not the text: the same
+sentence is innocuous or dangerous depending on the photo, which is why a vision
+model is required and why a text-only pipeline could not be pointed at this data.
+
+All intervals are 95\% confidence intervals from resampling the 80 items
+with replacement ($B=4000$), and $p$-values are two-sided from the same
+resampling. Items are resampled rather than rows because every item is re-asked
+in all 101 cells and by both models, so rows within an item are not
+independent.
+
+\section*{Data}
+
+\textbf{Source.} SaLAD (\texttt{Holly301/SaLAD},
+arXiv:2601.04043), 2{,}013 real-world image$+$text samples across
+10 everyday categories, each labelled \texttt{safe} or \texttt{unsafe}.
+
+\textbf{Sample.} 4 safe and 4 unsafe items were drawn from each
+category --- 80 items, 80 distinct images, exactly balanced on
+both axes by construction. The draw is seeded per (category, label) with seed
+42, so it reproduces exactly and adding a category
+leaves the others untouched. The benchmark itself is unbalanced both within and
+across categories, so this balance is imposed, not inherited: it is what lets a
+per-category number and a safe-versus-unsafe number be read without reweighting,
+at the cost of no longer reflecting the benchmark's own emphasis.
+
+\begin{table}[h]\centering
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{sampled} & \multicolumn{2}{c}{available in SaLAD} \\
+category & unsafe & safe & unsafe & safe \\
+\midrule
+Activity & 4 & 4 & 127 & 110 \\
+Exercise & 4 & 4 & 118 & 124 \\
+Food & 4 & 4 & 144 & 131 \\
+Game & 4 & 4 & 54 & 56 \\
+Health & 4 & 4 & 82 & 53 \\
+Home & 4 & 4 & 148 & 119 \\
+Office & 4 & 4 & 53 & 53 \\
+Research & 4 & 4 & 129 & 110 \\
+Study & 4 & 4 & 82 & 76 \\
+Travel & 4 & 4 & 133 & 111 \\
+\midrule \textbf{total} & \textbf{40} & \textbf{40} & \textbf{1070} & \textbf{943} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Gold reference.} Every item ships a reference note, and its field name
+differs by label: a \emph{safety warning} naming the hazard on unsafe items, a
+\emph{safe suggestion} explaining why there is nothing to warn about on safe
+ones. Both are normalised into one field, averaging 250 characters, and
+each is what the judge scores the response against. 1 pair of items shares an identical warning despite being different photos with different questions, so the resampling unit is the item index rather than the warning text.
+
+\textbf{What the model sees.} One image and one short question. Images are
+downscaled to a 1024\,px long edge before the model sees them --- an
+experimental choice, not only a speed one, since Qwen3-VL tokenises at native
+resolution and every one of the 101 cells per item repeats the same image.
+
+\section*{Judge}
+
+Responses are scored by \texttt{gemini-3.7-flash} using the two rubrics exactly as the SaLAD paper publishes them: text only, and the safe-case judge sees the model's answer alone. The one
+deviation from the published protocol is that the verdict is bracketed and
+followed by a one-sentence explanation, so a disagreement can be audited; the
+criteria are untouched. True maps to \emph{pass} and false to \emph{fail}.
+
+\section*{Baseline}
+
+\begin{table}[h]\centering
+\begin{tabular}{lcc}
+\toprule
+& unsafe (catch the hazard) & safe (do not over-warn) \\
+\midrule
+Qwen3-VL-8B (instruct) & 0.706 & 0.938 \\
+Qwen3-VL-8B (thinking) & 0.682 & 0.975 \\
+\midrule pooled & \textbf{0.694} & \textbf{0.957} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The models miss roughly 31\% of genuine hazards while
+answering 96\% of safe requests without over-warning.
+Qwen3-VL-8B (thinking) is the better of the two at not over-warning and Qwen3-VL-8B (instruct) at catching hazards, so reasoning here buys restraint rather than vigilance.
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp3_fig1_conditions.pdf}
+\caption{Pass rate per condition, pooled over both halves.}
+\end{figure}
+
+\section*{Status effects}
+
+Pooled over both halves, none of the 12 pooled factorial tests reaches $p<.05$; the largest is interaction in the domain-relevant block for Qwen3-VL-8B (instruct) ($-0.047$, $p=0.058$). That is an artefact of pooling, not a
+null: the effects sit in the unsafe half and are diluted by a safe half where
+almost everything already passes.
+
+Split by gold label, in the domain-relevant block:
+
+\begin{table}[h]\centering
+\begin{tabular}{llcc}
+\toprule
+model & effect & unsafe & safe \\
+\midrule
+Qwen3-VL-8B (instruct) & user high$-$low & \textbf{$+0.070$}\,** & $-0.022$ \\
+Qwen3-VL-8B (instruct) & model high$-$low & \textbf{$+0.055$}\,* & $+0.013$ \\
+Qwen3-VL-8B (thinking) & user high$-$low & $-0.015$ & $+0.040$ \\
+Qwen3-VL-8B (thinking) & model high$-$low & \textbf{$+0.070$}\,** & $-0.020$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+\vspace{-1em}
+\noindent{\footnotesize * $p<.05$, ** $p<.01$, uncorrected.}
+
+\noindent
+All 4 significant domain-block effects fall on the unsafe side. 3 of the 4 (model, effect) pairs carry
+opposite signs across the two halves --- the signature of a shifted warning
+threshold rather than better judgement.
+
+\textbf{Irrelevant status does nothing.} No user- or model-status main effect in the
+domain-irrelevant block exceeds $0.014$ in magnitude and none reaches $p<.05$.%
+ 1 interaction term does too (largest $+0.034$, $p=0.024$), among 12 tests in that block. Against the no-role control, 2 of 16 cells differ at $p<.05$; the largest is \texttt{domain\_ulow\_mlow} for Qwen3-VL-8B (instruct) ($-0.092$, $p=0.005$).
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp3_fig8_by_prompt_type.pdf}
+\caption{The factorial effects re-fitted inside each half. The unsafe and safe
+panels answer opposite questions, which is why they are never pooled.}
+\end{figure}
+
+\noindent
+These 24 effects are reported without correction for multiple testing.
+Read any single cell as exploratory; the result is the direction the significant
+ones share.
+
+\section*{Power asymmetry}
+
+The main effects say whether each side's status matters on its own. Neither
+answers what the design was built for: what happens when the two sides are
+\emph{unequal}. Two contrasts do, both computed within a block so relevance is
+held constant, and both holding one high-status and one low-status party fixed
+so only the \emph{direction} of the gap changes.
+
+egin{itemize}
+\item 	extbf{power gradient} --- user above model minus model above user.
+Negative means the model warns less when the person asking outranks it.
+\item 	extbf{matched $-$ mismatched} --- whether a gap matters at all in
+either direction. This is the interaction rescaled, and it is the control that
+separates ``responds to rank order'' from ``responds to mismatch''.
+\end{itemize}
+
+
+oindent
+	extbf{The sharpest cell is Qwen3-VL-8B (thinking) on
+domain-relevant roles, unsafe items:
+$-0.085$ ($p=0.007$)} --- it warns \emph{less} when the person asking outranks it. The other half of the same cell moves $+0.060$ ($p=0.019$), the opposite way, which is what a shifted warning threshold looks like.
+2 of the 8 gradient tests reach $p<.05$. Meanwhile the matched-versus-mismatched control is flat: only 1 of 8 of those tests reaches $p<.05$, all in the domain-irrelevant block and under $0.017$. So what moves the model is rank \emph{order}, not the presence of a gap.
+
+egin{figure}[h]\centering
+\includegraphics[width=	extwidth]{exp3_fig9_power_gradient.pdf}
+\caption{Power gradient against its symmetry control, pooled over the two
+halves. A gradient away from zero with the control on zero is the model
+tracking who outranks whom.}
+\end{figure}
+
+\section*{Mixed-effects check}
+
+The intervals above come from resampling items. As a second route to the same
+question, each effect was re-estimated with a \textbf{linear mixed model}:
+pass (0/1) predicted by user status $\times$ assistant status, with a
+\textbf{random intercept for each item}, fitted by REML. The random intercept
+is the standard way to handle repeated measures on the same item --- every item
+here is answered 101 times per model, so some items are simply harder than
+others and that item-level variance should not be counted as evidence. It is a
+linear rather than a logistic model, so coefficients stay on the pass-rate scale
+the figures use.
+
+\textbf{The conclusions do not depend on the method.} Point estimates are
+identical to the resampled ones (largest difference $2e-16$), and
+3 of the 3 significant unsafe-half effects stay significant
+($p\le0.008$). 2 of the 24 tests cross the .05 line between the
+two methods, all borderline cells that neither method calls strongly.
+
+\section*{Conclusions}
+
+\begin{itemize}
+\item \textbf{Domain-relevant status shifts how much the model warns.} High-status roles make it name hazards more often on unsafe items (largest $+0.070$, $p=0.006$), and the safe half moves the opposite way in 3 of the 4 pairings --- a moved threshold, not better discrimination.
+
+\item \textbf{Status the model cannot use is ignored.} Nobel laureates and shelf stockers move the pass rate by at most $0.014$, so what matters is claimed expertise in the item's domain rather than standing as such.
+
+\item \textbf{The two halves have to be analysed separately.} Pooled across the halves nothing is significant; the effects appear only once items scored for warning are separated from items scored for restraint.
+
+\item \textbf{The status effects are small.} The largest significant main effect is $0.070$ against baselines of 69--96\%, and 5 of 24 tests reach $p<.05$ uncorrected.
+
+\item \textbf{Reasoning trades vigilance for restraint.} Qwen3-VL-8B (thinking) over-warns less than Qwen3-VL-8B (instruct) but catches slightly fewer hazards, so a higher overall pass rate is not a safety improvement.
+
+\item \textbf{Only the pressure phrase is manipulated cleanly.} Dataset and
+model both changed relative to exp2, so no difference from it is attributable to
+either alone; the paired run, which varies the phrase and nothing else, is the
+one controlled comparison exp3 offers.
+\end{itemize}
+
+\end{document}

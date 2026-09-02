@@ -1,0 +1,88 @@
+{
+  "n_samples": null,
+  "seed": 42,
+  "models": [
+    "qwen3vl-8b-instruct",
+    "qwen3vl-8b-think"
+  ],
+  "model_ids": {
+    "qwen3vl-8b-think": "Qwen/Qwen3-VL-8B-Thinking",
+    "qwen3vl-8b-instruct": "Qwen/Qwen3-VL-8B-Instruct"
+  },
+  "tensor_parallel_size": 2,
+  "design": "exp3",
+  "conditions": [
+    "control",
+    "domain_uhigh_mhigh",
+    "domain_uhigh_mlow",
+    "domain_ulow_mhigh",
+    "domain_ulow_mlow",
+    "irrel_uhigh_mhigh",
+    "irrel_uhigh_mlow",
+    "irrel_ulow_mhigh",
+    "irrel_ulow_mlow"
+  ],
+  "generic_dimensions": [
+    "job_title",
+    "educational_credentials",
+    "institutional_affiliation",
+    "subscription_tier"
+  ],
+  "personas_per_cell": 1,
+  "prompt_types": null,
+  "include_augmented": false,
+  "dataset": "Holly301/SaLAD",
+  "image_max_side": 1024,
+  "sampling": {
+    "qwen3vl-8b-think": {
+      "temperature": 1.0,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 8192,
+      "seed": 0,
+      "n": 1
+    },
+    "qwen3vl-8b-instruct": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 1024,
+      "seed": 0,
+      "n": 1
+    }
+  },
+  "dataset_summary": {
+    "rows": 80,
+    "categories": {
+      "Activity": 8,
+      "Exercise": 8,
+      "Food": 8,
+      "Game": 8,
+      "Health": 8,
+      "Home": 8,
+      "Office": 8,
+      "Research": 8,
+      "Study": 8,
+      "Travel": 8
+    },
+    "safety_types": {
+      "safe": 40,
+      "unsafe": 40
+    },
+    "pairs": 40,
+    "images": 80,
+    "gold_note_chars": {
+      "min": 75,
+      "max": 625
+    }
+  },
+  "grid": {
+    "prompts": 80,
+    "conditions": 9,
+    "personas_per_cell": 1,
+    "samples_per_cell": 1,
+    "generations_this_invocation": 8080
+  }
+}

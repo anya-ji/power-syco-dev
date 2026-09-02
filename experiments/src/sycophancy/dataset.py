@@ -40,6 +40,16 @@ def filter_rows(
     return out
 
 
+def restrict_to_facts_with(rows: list[dict], anchor_type: str) -> list[dict]:
+    """Keep only rows whose safety fact also has an ``anchor_type`` prompt.
+
+    Lets a multi-prompt-type run cover exactly the fact set of an earlier
+    single-type run, so the two are comparable on the same facts.
+    """
+    facts = {r["safety_fact"] for r in rows if r["prompt_type"] == anchor_type}
+    return [r for r in rows if r["safety_fact"] in facts]
+
+
 def subsample(
     rows: list[dict], n: int | None, seed: int, stratify_by_fact: bool = True
 ) -> list[dict]:
@@ -82,6 +92,8 @@ def load_sample(cfg: ExperimentConfig) -> list[dict]:
     """Load, filter, and subsample in one step."""
     rows = load_sage(cfg.dataset_id, cfg.dataset_split)
     rows = filter_rows(rows, cfg.prompt_types, cfg.include_augmented)
+    if cfg.anchor_prompt_type:
+        rows = restrict_to_facts_with(rows, cfg.anchor_prompt_type)
     rows = subsample(rows, cfg.n_samples, cfg.seed)
     return project(rows)
 

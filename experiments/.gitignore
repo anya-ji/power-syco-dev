@@ -10,11 +10,29 @@ wheels/
 .venv
 .env
 
-# Experiment outputs -- regenerate with cluster/run_pilot.sh
-results/
+# Experiment outputs. Analysis products (figures, tables, reports, run logs,
+# dashboards, run configs) are committed. The raw generations and the dumped
+# prompt bodies are not: together they are ~4.3 GB and several single files
+# exceed GitHub's 100 MB per-file limit. Regenerate them with cluster/run_*.sh.
+**/results/**/raw/
+**/results/**/prompts/
 
-# LaTeX intermediates
+# LaTeX intermediates (report/report.log is one of these; run logs are kept)
 *.aux
 *.log
 *.out
 *.toc
+!**/results/**/logs/*.log
+
+# Generated dashboards and entry page (rebuild with serve_dashboard.py --all)
+index.html
+exp*/dashboard/*.html
+
+# exp3 stimulus images -- 39 MB extracted from SaLAD's image.zip; the sample
+# manifest (data/salad/sample.json) is committed and sample_salad.py re-extracts
+# exactly these 100 files from it.
+data/salad/images/
+
+# Cloudflare tunnel state (logs, current public URL)
+.tunnel/
+**/results/*/dashboard.html

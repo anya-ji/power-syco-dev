@@ -221,3 +221,4 @@ __marimo__/
 # pilot/ is the superseded prototype plus a 3.2GB venv; kept locally only.
 .claude
 pilot
+.nfs*

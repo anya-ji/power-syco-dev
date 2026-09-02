@@ -1,0 +1,4 @@
+model,domain_gap,irrel_gap,relevance_gap,control_rate,mean_rate,allpass_domain_gap,allpass_irrel_gap,allpass_relevance_gap,allpass_control_rate,allpass_mean_rate
+qwen3-8b-base,,,,0.5836734693877551,0.5764625850340136,,,,,0.1265922619047619
+qwen3-8b-nothink,,,,0.7918367346938775,0.7768253968253968,,,,,0.4847395833333335
+qwen3-8b-think,,,,0.8612244897959184,0.8670748299319728,,,,,0.6800334821428577

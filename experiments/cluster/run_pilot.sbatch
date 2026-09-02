@@ -26,7 +26,9 @@ cd "$PROJECT"
 
 # generate.py resumes from generations.jsonl and score.py from judged.jsonl,
 # so a preempted job can simply be resubmitted.
-uv run python scripts/model/generate.py --results-dir "$RESULTS_DIR" "$@"
-uv run python scripts/judge/score.py --results-dir "$RESULTS_DIR"
-uv run python scripts/analysis/analyze.py --results-dir "$RESULTS_DIR"
-uv run python scripts/analysis/build_report.py --results-dir "$RESULTS_DIR"
+RUN="${RUN:-sbatch_$SLURM_JOB_ID}"
+uv run python scripts/model/generate.py --results-dir "$RESULTS_DIR" --run-name "$RUN" "$@"
+uv run python scripts/judge/score.py        --run "$RESULTS_DIR/$RUN"
+uv run python scripts/analysis/analyze.py   --run "$RESULTS_DIR/$RUN"
+uv run python scripts/analysis/build_dashboard.py --run "$RESULTS_DIR/$RUN"
+uv run python scripts/analysis/build_report.py    --run "$RESULTS_DIR/$RUN"

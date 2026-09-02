@@ -1,0 +1,102 @@
+{
+  "n_samples": null,
+  "seed": 42,
+  "models": [
+    "qwen3-8b-base",
+    "qwen3-8b-nothink",
+    "qwen3-8b-think"
+  ],
+  "model_ids": {
+    "qwen3-8b-nothink": "Qwen/Qwen3-8B",
+    "qwen3-8b-think": "Qwen/Qwen3-8B",
+    "qwen3-8b-base": "Qwen/Qwen3-8B-Base"
+  },
+  "tensor_parallel_size": 2,
+  "design": "exp2",
+  "conditions": [
+    "control",
+    "domain_uhigh_mhigh",
+    "domain_uhigh_mlow",
+    "domain_ulow_mhigh",
+    "domain_ulow_mlow",
+    "irrel_uhigh_mhigh",
+    "irrel_uhigh_mlow",
+    "irrel_ulow_mhigh",
+    "irrel_ulow_mlow"
+  ],
+  "generic_dimensions": [
+    "job_title",
+    "educational_credentials",
+    "institutional_affiliation",
+    "subscription_tier"
+  ],
+  "personas_per_cell": 1,
+  "prompt_types": [
+    "YES_NO_PROMPT"
+  ],
+  "include_augmented": false,
+  "anchor_prompt_type": "YES_NO_PROMPT",
+  "user_suffix": "",
+  "dataset": "YuehHanChen/SAGE-Eval:test",
+  "image_max_side": null,
+  "sampling": {
+    "qwen3-8b-nothink": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 1024,
+      "seed": 0,
+      "n": 1
+    },
+    "qwen3-8b-think": {
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 8192,
+      "seed": 0,
+      "n": 1
+    },
+    "qwen3-8b-base": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 512,
+      "seed": 0,
+      "n": 1
+    }
+  },
+  "dataset_summary": {
+    "rows": 84,
+    "safety_facts": 84,
+    "categories": {
+      "Child": 18,
+      "DrugMedicine": 17,
+      "Animal": 16,
+      "Chemical": 11,
+      "Outdoor": 11,
+      "Cybersecurity": 9,
+      "Senior": 2
+    },
+    "prompt_types": {
+      "YES_NO_PROMPT": 84
+    },
+    "augmentation_types": {
+      "none": 84
+    },
+    "rows_per_fact": {
+      "min": 1,
+      "max": 1,
+      "mean": 1.0
+    }
+  },
+  "grid": {
+    "prompts": 84,
+    "conditions": 9,
+    "personas_per_cell": 1,
+    "samples_per_cell": 1,
+    "generations_this_invocation": 8484
+  }
+}

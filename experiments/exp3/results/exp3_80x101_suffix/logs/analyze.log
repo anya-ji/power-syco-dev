@@ -1,0 +1,162 @@
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+Run directory: exp3/results/exp3_80x101_suffix
+NOTE: 1 item(s) share a gold note with another; prefixing with the item index so each stimulus is its own bootstrap cluster
+Loaded 16,160 judged rows — 80 items, 2 models
+
+Pass rate by gold label (pooled over every condition):
+  safe    0.928  (8,080 rows)
+  unsafe  0.759  (8,080 rows)
+  NB: opposite rubrics — unsafe = hazard caught, safe = not over-warned. Do not average them.
+
+Cluster bootstrap over 80 SaLAD items (B=4000)…
+
+model                 block   effect                  est             95% CI        p
+qwen3vl-8b-instruct   domain  user (high-low)      +0.008  [-0.034,+0.050]   0.7908  
+qwen3vl-8b-instruct   domain  model (high-low)     +0.010  [-0.030,+0.049]   0.6378  
+qwen3vl-8b-instruct   domain  interaction          +0.025  [-0.028,+0.075]   0.3564  
+qwen3vl-8b-instruct   irrel   user (high-low)      -0.009  [-0.024,+0.004]   0.1895  
+qwen3vl-8b-instruct   irrel   model (high-low)     +0.008  [-0.008,+0.025]   0.3309  
+qwen3vl-8b-instruct   irrel   interaction          +0.005  [-0.021,+0.032]   0.7438  
+qwen3vl-8b-think      domain  user (high-low)      +0.006  [-0.029,+0.039]   0.7373  
+qwen3vl-8b-think      domain  model (high-low)     -0.014  [-0.057,+0.027]   0.5524  
+qwen3vl-8b-think      domain  interaction          +0.022  [-0.020,+0.070]   0.3359  
+qwen3vl-8b-think      irrel   user (high-low)      -0.001  [-0.013,+0.010]   0.8693  
+qwen3vl-8b-think      irrel   model (high-low)     -0.007  [-0.019,+0.005]   0.2654  
+qwen3vl-8b-think      irrel   interaction          -0.011  [-0.036,+0.012]   0.3654  
+
+  95% CIs and two-sided p from resampling the items with replacement
+
+Same effects split by gold label — the halves should move oppositely if status shifts how much the model warns:
+model                 label   block   effect                  est        p
+qwen3vl-8b-instruct   SAFE    domain  user (high-low)      -0.038   0.1945  
+qwen3vl-8b-instruct   SAFE    domain  model (high-low)     -0.027   0.3339  
+qwen3vl-8b-instruct   SAFE    domain  interaction          +0.045   0.3299  
+qwen3vl-8b-instruct   SAFE    irrel   user (high-low)      -0.003   0.7743  
+qwen3vl-8b-instruct   SAFE    irrel   model (high-low)     -0.004   0.6763  
+qwen3vl-8b-instruct   SAFE    irrel   interaction          +0.026   0.1640  
+qwen3vl-8b-instruct   UNSAFE  domain  user (high-low)      +0.052   0.0840  
+qwen3vl-8b-instruct   UNSAFE  domain  model (high-low)     +0.048   0.1055  
+qwen3vl-8b-instruct   UNSAFE  domain  interaction          +0.005   0.9188  
+qwen3vl-8b-instruct   UNSAFE  irrel   user (high-low)      -0.016   0.1130  
+qwen3vl-8b-instruct   UNSAFE  irrel   model (high-low)     +0.021   0.1305  
+qwen3vl-8b-instruct   UNSAFE  irrel   interaction          -0.016   0.4234  
+qwen3vl-8b-think      SAFE    domain  user (high-low)      +0.002   0.9653  
+qwen3vl-8b-think      SAFE    domain  model (high-low)     -0.078   0.0135  *
+qwen3vl-8b-think      SAFE    domain  interaction          +0.025   0.5434  
+qwen3vl-8b-think      SAFE    irrel   user (high-low)      -0.000   1.0000  
+qwen3vl-8b-think      SAFE    irrel   model (high-low)     -0.017   0.0010  ***
+qwen3vl-8b-think      SAFE    irrel   interaction          +0.027   0.0065  **
+qwen3vl-8b-think      UNSAFE  domain  user (high-low)      +0.010   0.6453  
+qwen3vl-8b-think      UNSAFE  domain  model (high-low)     +0.050   0.0355  *
+qwen3vl-8b-think      UNSAFE  domain  interaction          +0.020   0.5034  
+qwen3vl-8b-think      UNSAFE  irrel   user (high-low)      -0.003   0.8563  
+qwen3vl-8b-think      UNSAFE  irrel   model (high-low)     +0.004   0.7223  
+qwen3vl-8b-think      UNSAFE  irrel   interaction          -0.050   0.0150  *
+
+Power asymmetry, holding both status levels fixed:
+  power gradient    = user above model - model above user (negative: warns less when the asker outranks it)
+  matched-mismatched = does a gap matter at all, either direction (the interaction, rescaled)
+model                 label   block   contrast                 est             95% CI        p
+qwen3vl-8b-instruct   SAFE    domain  power gradient        -0.010  [-0.068,+0.049]   0.7838  
+qwen3vl-8b-instruct   SAFE    domain  matched - mismatched  +0.022  [-0.023,+0.066]   0.3329  
+qwen3vl-8b-instruct   SAFE    irrel   power gradient        +0.001  [-0.022,+0.023]   0.9483  
+qwen3vl-8b-instruct   SAFE    irrel   matched - mismatched  +0.013  [-0.005,+0.032]   0.1645  
+qwen3vl-8b-instruct   UNSAFE  domain  power gradient        +0.005  [-0.062,+0.080]   0.9683  
+qwen3vl-8b-instruct   UNSAFE  domain  matched - mismatched  +0.003  [-0.025,+0.029]   0.9288  
+qwen3vl-8b-instruct   UNSAFE  irrel   power gradient        -0.036  [-0.067,-0.007]   0.0185  *
+qwen3vl-8b-instruct   UNSAFE  irrel   matched - mismatched  -0.008  [-0.027,+0.011]   0.4264  
+qwen3vl-8b-think      SAFE    domain  power gradient        +0.080  [+0.018,+0.150]   0.0175  *
+qwen3vl-8b-think      SAFE    domain  matched - mismatched  +0.012  [-0.022,+0.050]   0.5484  
+qwen3vl-8b-think      SAFE    irrel   power gradient        +0.017  [+0.004,+0.031]   0.0100  **
+qwen3vl-8b-think      SAFE    irrel   matched - mismatched  +0.014  [+0.004,+0.024]   0.0075  **
+qwen3vl-8b-think      UNSAFE  domain  power gradient        -0.040  [-0.103,+0.011]   0.1980  
+qwen3vl-8b-think      UNSAFE  domain  matched - mismatched  +0.010  [-0.017,+0.039]   0.5134  
+qwen3vl-8b-think      UNSAFE  irrel   power gradient        -0.006  [-0.029,+0.017]   0.6318  
+qwen3vl-8b-think      UNSAFE  irrel   matched - mismatched  -0.025  [-0.046,-0.005]   0.0160  *
+
+Warning rate per condition — warning is a hit on unsafe items and a false alarm on safe ones:
+model                 condition               hit  false alarm   hit-FA
+qwen3vl-8b-instruct   control               0.775        0.075    0.700
+qwen3vl-8b-instruct   domain_uhigh_mhigh    0.880        0.210    0.670
+qwen3vl-8b-instruct   domain_uhigh_mlow     0.830        0.205    0.625
+qwen3vl-8b-instruct   domain_ulow_mhigh     0.825        0.195    0.630
+qwen3vl-8b-instruct   domain_ulow_mlow      0.780        0.145    0.635
+qwen3vl-8b-instruct   irrel_uhigh_mhigh     0.762        0.071    0.691
+qwen3vl-8b-instruct   irrel_uhigh_mlow      0.750        0.080    0.670
+qwen3vl-8b-instruct   irrel_ulow_mhigh      0.786        0.081    0.705
+qwen3vl-8b-instruct   irrel_ulow_mlow       0.757        0.064    0.694
+qwen3vl-8b-think      control               0.700        0.000    0.700
+qwen3vl-8b-think      domain_uhigh_mhigh    0.860        0.180    0.680
+qwen3vl-8b-think      domain_uhigh_mlow     0.800        0.115    0.685
+qwen3vl-8b-think      domain_ulow_mhigh     0.840        0.195    0.645
+qwen3vl-8b-think      domain_ulow_mlow      0.800        0.105    0.695
+qwen3vl-8b-think      irrel_uhigh_mhigh     0.709        0.025    0.684
+qwen3vl-8b-think      irrel_uhigh_mlow      0.730        0.021    0.709
+qwen3vl-8b-think      irrel_ulow_mhigh      0.736        0.039    0.698
+qwen3vl-8b-think      irrel_ulow_mlow       0.708        0.007    0.700
+
+Status effects on the WARNING rate (positive = warns more; both halves same sign = threshold shift):
+model                 label   block   effect                  est        p
+qwen3vl-8b-instruct   SAFE    domain  user (high-low)      +0.038   0.1915  
+qwen3vl-8b-instruct   SAFE    domain  model (high-low)     +0.028   0.3339  
+qwen3vl-8b-instruct   SAFE    irrel   user (high-low)      +0.003   0.7703  
+qwen3vl-8b-instruct   SAFE    irrel   model (high-low)     +0.004   0.6793  
+qwen3vl-8b-instruct   UNSAFE  domain  user (high-low)      +0.052   0.0840  
+qwen3vl-8b-instruct   UNSAFE  domain  model (high-low)     +0.048   0.1055  
+qwen3vl-8b-instruct   UNSAFE  irrel   user (high-low)      -0.016   0.1130  
+qwen3vl-8b-instruct   UNSAFE  irrel   model (high-low)     +0.021   0.1305  
+qwen3vl-8b-think      SAFE    domain  user (high-low)      -0.003   0.9608  
+qwen3vl-8b-think      SAFE    domain  model (high-low)     +0.077   0.0130  *
+qwen3vl-8b-think      SAFE    irrel   user (high-low)      +0.000   1.0000  
+qwen3vl-8b-think      SAFE    irrel   model (high-low)     +0.018   0.0010  ***
+qwen3vl-8b-think      UNSAFE  domain  user (high-low)      +0.010   0.6453  
+qwen3vl-8b-think      UNSAFE  domain  model (high-low)     +0.050   0.0355  *
+qwen3vl-8b-think      UNSAFE  irrel   user (high-low)      -0.003   0.8563  
+qwen3vl-8b-think      UNSAFE  irrel   model (high-low)     +0.004   0.7223  
+
+Each condition vs the no-role control (8 tests per model, uncorrected):
+  qwen3vl-8b-instruct    none differ from control
+  qwen3vl-8b-think       none differ from control
+
+Mixed-effects check (pass ~ u*m + random intercept per item, REML)…
+  split by label: 3/24 disagree at .05; max |estimate| gap 1.4e-16
+  effects where the two methods disagree at .05: 0/12
+  max |estimate| gap: 8.41e-17
+
+Figures -> exp3/results/exp3_80x101_suffix/figures
+  saved exp3_fig1_conditions.png -> figures/, exp3_fig1_conditions.pdf -> report/
+  saved exp3_fig2_2x2_panels.png -> figures/, exp3_fig2_2x2_panels.pdf -> report/
+  saved exp3_fig3_effects.png -> figures/, exp3_fig3_effects.pdf -> report/
+  saved exp3_fig4_interaction.png -> figures/, exp3_fig4_interaction.pdf -> report/
+  saved exp3_fig5_by_dimension.png -> figures/, exp3_fig5_by_dimension.pdf -> report/
+  saved exp3_fig6_allpass.png -> figures/, exp3_fig6_allpass.pdf -> report/
+  saved exp3_fig7_by_category.png -> figures/, exp3_fig7_by_category.pdf -> report/
+  saved exp3_fig9_power_gradient.png -> figures/, exp3_fig9_power_gradient.pdf -> report/
+  saved exp3_fig10_warning_rates.png -> figures/, exp3_fig10_warning_rates.pdf -> report/
+  saved exp3_fig8_by_prompt_type.png -> figures/, exp3_fig8_by_prompt_type.pdf -> report/
+
+Rendering unsafe items (8,080 rows) to combine…
+  saved exp3_unsafe_fig1_conditions.png -> figures/, exp3_unsafe_fig1_conditions.pdf -> report/
+  saved exp3_unsafe_fig2_2x2_panels.png -> figures/, exp3_unsafe_fig2_2x2_panels.pdf -> report/
+  saved exp3_unsafe_fig3_effects.png -> figures/, exp3_unsafe_fig3_effects.pdf -> report/
+  saved exp3_unsafe_fig4_interaction.png -> figures/, exp3_unsafe_fig4_interaction.pdf -> report/
+  saved exp3_unsafe_fig5_by_dimension.png -> figures/, exp3_unsafe_fig5_by_dimension.pdf -> report/
+  saved exp3_unsafe_fig6_allpass.png -> figures/, exp3_unsafe_fig6_allpass.pdf -> report/
+  saved exp3_unsafe_fig7_by_category.png -> figures/, exp3_unsafe_fig7_by_category.pdf -> report/
+  saved exp3_unsafe_fig9_power_gradient.png -> figures/, exp3_unsafe_fig9_power_gradient.pdf -> report/
+
+Rendering safe items (8,080 rows) to combine…
+  saved exp3_safe_fig1_conditions.png -> figures/, exp3_safe_fig1_conditions.pdf -> report/
+  saved exp3_safe_fig2_2x2_panels.png -> figures/, exp3_safe_fig2_2x2_panels.pdf -> report/
+  saved exp3_safe_fig3_effects.png -> figures/, exp3_safe_fig3_effects.pdf -> report/
+  saved exp3_safe_fig4_interaction.png -> figures/, exp3_safe_fig4_interaction.pdf -> report/
+  saved exp3_safe_fig5_by_dimension.png -> figures/, exp3_safe_fig5_by_dimension.pdf -> report/
+  saved exp3_safe_fig6_allpass.png -> figures/, exp3_safe_fig6_allpass.pdf -> report/
+  saved exp3_safe_fig7_by_category.png -> figures/, exp3_safe_fig7_by_category.pdf -> report/
+  saved exp3_safe_fig9_power_gradient.png -> figures/, exp3_safe_fig9_power_gradient.pdf -> report/
+  combined 8 figure(s) into *_by_half.png
+
+Tables -> exp3/results/exp3_80x101_suffix/tables

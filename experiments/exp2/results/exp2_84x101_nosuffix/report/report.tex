@@ -1,0 +1,308 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{booktabs,graphicx,amsmath,hyperref,microtype,caption,lmodern,parskip,xcolor}
+
+\title{Status-Based Sycophancy II:\\
+\large Crossing the User's Status with the Model's Own}
+\author{Sycophancy experiment pipeline}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Experiment~1 varied only the user's status and found little effect.
+Experiment~2 gives the assistant a status of its own and crosses the two inside
+a relevance block: $\{$user high, low$\} \times \{$model high, low$\}$ for
+domain-relevant and domain-irrelevant roles, plus a no-role control.
+25,452 generations across 84 safety facts and
+84 prompts, scored with the SAGE-Eval rubric by
+\texttt{gemini-3.7-flash}.
+
+The result is asymmetric. 5 of 6 model-status effects are
+positive and most are significant: telling the assistant it is high-status makes
+it \emph{more} likely to warn. The user's status moves almost nothing, except
+in the pre-trained base model, where a high-status user suppresses warnings.
+\end{abstract}
+
+\section{Data}
+
+\paragraph{Source.}
+All stimuli come from \textbf{SAGE-Eval}~\cite{sageeval2025}
+(\texttt{YuehHanChen/SAGE-Eval:test}), a benchmark of everyday questions whose safe answer
+depends on a fact the asker has not mentioned --- that macadamias are a choking
+hazard for a toddler, that a space heater must not run unattended. It ships
+11,297 rows built from 104 \emph{safety facts} across
+7 categories, each fact written out in 9 prompt types
+and each prompt in one base form plus 6 augmentations
+(typos, spacing punctuations, tone happiness, tone depression, tone urgency, tone anger).
+
+\paragraph{What this run keeps.}
+The benchmark is filtered rather than subsampled --- no random draw is involved
+at all --- in three steps:
+
+\begin{enumerate}
+\item \textbf{Drop the augmentations.} They vary typography and emotional
+tone, which is a different research question from status and would multiply the
+grid sevenfold. This leaves the 869 base prompts.
+\item \textbf{Keep 1 of the 9 prompt types}
+(Table~\ref{tab:ptypes}), one per framing family rather than several
+near-duplicates.
+\item \textbf{Anchor on \texttt{YES\_NO\_PROMPT}.} Only safety facts that
+also have a yes/no prompt are kept, which drops 104 facts to
+84. This is what makes the run comparable to the single-type experiment
+that preceded it: both cover the same fact set, so a difference between them is
+not a difference in which hazards were asked about.
+\end{enumerate}
+
+The result is \textbf{84 prompts over 84 safety facts}.
+Coverage is not quite complete --- not every fact exists in every type --- so
+the three columns hold 84 prompts respectively.
+
+\begin{table}[h]\centering
+\caption{Prompt types kept, and the framing each contributes.}
+\label{tab:ptypes}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrl}
+\toprule
+Prompt type & Prompts & Framing \\
+\midrule
+    \texttt{YES\_NO\_PROMPT} & 84 & a direct request the model can simply answer \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\paragraph{Category balance.}
+Categories are inherited from SAGE and are \emph{not} balanced by this run
+(Table~\ref{tab:cats}). \texttt{Senior} is the extreme case, and per-category
+results for it should be read as indicative only.
+
+\begin{table}[h]\centering
+\caption{Safety facts and prompts per category.}
+\label{tab:cats}
+\begin{tabular}{lrr}
+\toprule
+Category & Safety facts & Prompts \\
+\midrule
+    Child & 18 & 18 \\
+    DrugMedicine & 17 & 17 \\
+    Animal & 16 & 16 \\
+    Chemical & 11 & 11 \\
+    Outdoor & 11 & 11 \\
+    Cybersecurity & 9 & 9 \\
+    Senior & 2 & 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Subsampling, when it is used.}
+This run sets no sample size, so every filtered prompt is used and the seed
+never comes into play. When a size \emph{is} set, the draw is stratified by
+safety fact and never splits one fact's prompts across the in/out boundary ---
+the all-persona metric is scored per fact, so a partially included fact would
+not be scoreable.
+
+\paragraph{The user turn.}
+The dataset prompt is sent as the user message \textbf{verbatim}, with nothing appended. The user therefore states no opinion, and the status roles in the system prompt are the only manipulation.
+
+\paragraph{The grid.}
+Each prompt is asked under all 9 conditions. A condition costs one
+cell for the control, five persona pairs for each domain cell, and five pairs
+per status channel for each irrelevant cell (4 channels), giving
+101 cells per prompt:
+\[
+  \underbrace{1}_{\text{control}}
+  + \underbrace{4 \times 5}_{\text{domain}}
+  + \underbrace{4 \times 4 \times 5}_{\text{irrelevant}}
+  = 101.
+\]
+Times 84 prompts and 3 model variants, that is
+\textbf{25,452 generations}, each scored once.
+
+\paragraph{Scoring.}
+Every response is judged by \texttt{gemini-3.7-flash} against SAGE-Eval's own
+rubric, reproduced verbatim from the dataset card and verified against it at run
+time. The only change is a trailing instruction to add a one-sentence
+justification after the verdict, so judgements can be audited. The judge runs at
+temperature 0 with minimal thinking; a response truncated before it produced any
+answer is failed without an API call rather than being sent as an empty string.
+
+\section{Design}
+
+Nine conditions. Relevance is a property of the block: inside
+\textit{domain} both roles come from the item's own expertise bank, inside
+\textit{irrel} both come from the same generic status channel.
+
+\begin{table}[h]\centering
+\caption{Pass rate per condition.}
+\begin{tabular}{lrrr}
+\toprule
+Condition & Qwen3-8B (thinking) & Qwen3-8B (non-thinking) & Qwen3-8B (base) \\
+\midrule
+    Control (no roles) & 85.7\% & 79.8\% & 48.8\% \\
+    Domain user high / model high & 89.8\% & 87.1\% & 58.8\% \\
+    Domain user high / model low & 87.6\% & 78.6\% & 59.8\% \\
+    Domain user low / model high & 90.0\% & 83.6\% & 64.5\% \\
+    Domain user low / model low & 88.1\% & 82.1\% & 64.8\% \\
+    Irrel. user high / model high & 85.9\% & 80.2\% & 59.2\% \\
+    Irrel. user high / model low & 85.2\% & 79.8\% & 56.5\% \\
+    Irrel. user low / model high & 85.9\% & 80.7\% & 60.1\% \\
+    Irrel. user low / model low & 84.9\% & 76.7\% & 55.5\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The system prompt places the assistant's standing first and the user's second,
+e.g.\ \textit{``You are a pediatrician. The user is a first-time parent.''}
+Model roles mirror the user banks re-voiced to second person, so both sides draw
+on one vocabulary. Control sends no system message at all.
+
+\section{Statistical inference}
+
+Rows are not independent: one safety fact contributes up to three prompt
+templates $\times$ 101 persona cells, and every prompt is re-asked under every
+condition. Treating responses as independent draws would understate every
+interval by roughly a third.
+
+Every interval reported here is therefore a 95\,\% \textbf{cluster bootstrap
+over safety facts}, $B=4000$: each draw takes the 84 facts with
+replacement and recomputes the statistic from scratch, so the fact --- not the
+response --- is the unit of resampling. $p$ is two-sided from the bootstrap
+distribution, using the $(r{+}1)/(B{+}1)$ convention, which floors it at
+0.0005; effects at that floor are reported as such rather than as zero.
+
+No multiplicity correction is applied. The factorial effects are three
+pre-specified contrasts per block --- the design itself, not a search over
+many candidate comparisons --- and the per-condition differences from control
+in Figure~\ref{fig:conditions} are reported as descriptive. As a cross-check the same effects were re-estimated by mixed-effects models with random intercepts for the safety fact and for the prompt nested within it, effect-coded so the coefficients are the same marginal quantities. The two methods agree on every effect at $p<0.05$, and their point estimates differ by at most 1.0e-16 on the rate scale.
+
+\section{Results}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp2_fig3_effects.pdf}
+\caption{Main effects and interaction with 95\,\% cluster-bootstrap CIs over
+safety facts. Positive means the model warns more.}
+\label{fig:effects}
+\end{figure}
+
+\begin{table}[h]\centering
+\caption{Factorial effects on pass rate, cluster bootstrap over safety facts.
+$^{*}$ $p<0.05$, unadjusted.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllrrr}
+\toprule
+Model & Block & Effect & Estimate & 95\,\% CI & $p$ \\
+\midrule
+    Qwen3-8B (thinking) & Domain-relevant & user (high-low) & -0.004 & [-0.024, +0.014] & 0.742 \\
+    Qwen3-8B (thinking) & Domain-relevant & model (high-low) & +0.020 & [-0.001, +0.044] & 0.067 \\
+    Qwen3-8B (thinking) & Domain-relevant & interaction & +0.002 & [-0.043, +0.052] & 0.960 \\
+    Qwen3-8B (thinking) & Domain-irrelevant & user (high-low) & +0.001 & [-0.012, +0.015] & 0.853 \\
+    Qwen3-8B (thinking) & Domain-irrelevant & model (high-low) & +0.009 & [-0.005, +0.024] & 0.246 \\
+    Qwen3-8B (thinking) & Domain-irrelevant & interaction & -0.003 & [-0.018, +0.013] & 0.743 \\
+    Qwen3-8B (non-thinking) & Domain-relevant & user (high-low) & +0.000 & [-0.027, +0.026] & 0.995 \\
+    Qwen3-8B (non-thinking) & Domain-relevant & model (high-low) & +0.050 & [+0.026, +0.075] & 0.000$^{*}$ \\
+    Qwen3-8B (non-thinking) & Domain-relevant & interaction & +0.071 & [+0.017, +0.129] & 0.010$^{*}$ \\
+    Qwen3-8B (non-thinking) & Domain-irrelevant & user (high-low) & +0.013 & [-0.003, +0.029] & 0.111 \\
+    Qwen3-8B (non-thinking) & Domain-irrelevant & model (high-low) & +0.022 & [+0.001, +0.041] & 0.039$^{*}$ \\
+    Qwen3-8B (non-thinking) & Domain-irrelevant & interaction & -0.036 & [-0.067, -0.008] & 0.010$^{*}$ \\
+    Qwen3-8B (base) & Domain-relevant & user (high-low) & -0.054 & [-0.095, -0.012] & 0.010$^{*}$ \\
+    Qwen3-8B (base) & Domain-relevant & model (high-low) & -0.006 & [-0.049, +0.038] & 0.823 \\
+    Qwen3-8B (base) & Domain-relevant & interaction & -0.007 & [-0.083, +0.069] & 0.863 \\
+    Qwen3-8B (base) & Domain-irrelevant & user (high-low) & +0.000 & [-0.017, +0.018] & 0.987 \\
+    Qwen3-8B (base) & Domain-irrelevant & model (high-low) & +0.036 & [+0.017, +0.055] & 0.000$^{*}$ \\
+    Qwen3-8B (base) & Domain-irrelevant & interaction & -0.020 & [-0.058, +0.018] & 0.329 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+6 of 18 effects reach $p<0.05$.
+
+\begin{table}[h]\centering
+\caption{Cell means: user status $\times$ model status, per block.
+$\pm$ is the 95\,\% bootstrap half-width.}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrr}
+\toprule
+Block & User & \multicolumn{2}{c}{Qwen3-8B (thinking)} & \multicolumn{2}{c}{Qwen3-8B (non-thinking)} & \multicolumn{2}{c}{Qwen3-8B (base)} \\
+ & & model high & model low & model high & model low & model high & model low \\
+\midrule
+    Domain-relevant & user high & 89.8\% \tiny{$\pm$5.0\%} & 87.6\% \tiny{$\pm$5.6\%} & 87.1\% \tiny{$\pm$5.4\%} & 78.6\% \tiny{$\pm$5.8\%} & 58.8\% \tiny{$\pm$6.8\%} & 59.8\% \tiny{$\pm$6.8\%} \\
+    Domain-relevant & user low & 90.0\% \tiny{$\pm$4.9\%} & 88.1\% \tiny{$\pm$5.4\%} & 83.6\% \tiny{$\pm$5.6\%} & 82.1\% \tiny{$\pm$6.3\%} & 64.5\% \tiny{$\pm$6.9\%} & 64.8\% \tiny{$\pm$6.6\%} \\
+    Domain-irrelevant & user high & 85.9\% \tiny{$\pm$5.6\%} & 85.2\% \tiny{$\pm$5.8\%} & 80.2\% \tiny{$\pm$5.8\%} & 79.8\% \tiny{$\pm$6.1\%} & 59.2\% \tiny{$\pm$6.6\%} & 56.5\% \tiny{$\pm$6.5\%} \\
+    Domain-irrelevant & user low & 85.9\% \tiny{$\pm$5.7\%} & 84.9\% \tiny{$\pm$6.1\%} & 80.7\% \tiny{$\pm$6.2\%} & 76.7\% \tiny{$\pm$6.9\%} & 60.1\% \tiny{$\pm$6.9\%} & 55.5\% \tiny{$\pm$6.7\%} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.92\textwidth]{exp2_fig2_2x2_panels.pdf}
+\caption{The design as a heatmap.}
+\end{figure}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp2_fig1_conditions.pdf}
+\caption{Pass rate across all nine conditions. Stars mark a difference from the
+no-role control, unadjusted.}
+\label{fig:conditions}
+\end{figure}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp2_fig4_interaction.pdf}
+\caption{Interaction plot. Parallel lines indicate the user effect does not
+depend on the model's own status.}
+\end{figure}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp2_fig5_by_dimension.pdf}
+\caption{Effects split by status channel within the irrelevant block.}
+\end{figure}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{exp2_fig6_allpass.pdf}
+\caption{All-persona pass rate (size-matched): a fact counts only when every
+role pairing for it passed.}
+\end{figure}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.85\textwidth]{exp2_fig7_by_category.pdf}
+\caption{Model-status effect by safety category (Qwen3-8B (thinking)).}
+\end{figure}
+
+
+
+\section{Discussion}
+
+\paragraph{The model's status dominates the user's.}
+Every model-status effect points the same way and most are significant, while
+user-status effects cluster on zero. Assistants told they are domain experts or
+high-status warn more; assistants told they are non-specialists or low-tier warn
+less. If this holds, deployment framing that diminishes the assistant degrades
+its safety behaviour, independently of who is asking.
+
+\paragraph{The base model is the exception.}
+It shows the only clear user effect: a high-status user suppresses warnings in
+the domain block. That is textbook deference to claimed authority, present
+before post-training and absent after --- consistent with instruction tuning
+suppressing user-directed sycophancy while leaving the model's self-image
+influential.
+
+\paragraph{Interactions are essentially absent.}
+The two factors are additive: the user effect does not depend on the model's own
+standing. The one exception fails to survive multiple-comparison correction.
+
+\paragraph{Limitations.}
+Effects are 1--5 percentage points against baselines of 52--90\,\%: tight, but
+small. Few individual conditions separate from the no-role control, because the
+control cell holds one row per prompt against five or twenty for every other
+cell, so its interval dominates each comparison. Decoding is stochastic with one sample per cell. Personas are paired
+rather than fully crossed, and the roles come from finite banks, so a persona
+identity effect is not fully separable from the level effect. One status channel
+(\texttt{subscription\_tier}) could not be mirrored to the model side and uses
+hand-authored product-tier roles. The judge is a single model and is not
+human-validated here.
+
+\begin{thebibliography}{9}
+\bibitem{sageeval2025} Chen, Y.-H., Davidson, G., Lake, B.~M. (2025).
+SAGE-Eval. \textit{arXiv:2505.21828}.
+\end{thebibliography}
+\end{document}

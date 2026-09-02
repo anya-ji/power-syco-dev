@@ -1,0 +1,94 @@
+{
+  "n_samples": null,
+  "seed": 42,
+  "models": [
+    "qwen3-8b-think",
+    "qwen3-8b-nothink",
+    "qwen3-8b-base"
+  ],
+  "model_ids": {
+    "qwen3-8b-think": "Qwen/Qwen3-8B",
+    "qwen3-8b-nothink": "Qwen/Qwen3-8B",
+    "qwen3-8b-base": "Qwen/Qwen3-8B-Base"
+  },
+  "tensor_parallel_size": 2,
+  "conditions": [
+    "control",
+    "domain_high",
+    "domain_low",
+    "irrel_high",
+    "irrel_low"
+  ],
+  "generic_dimensions": [
+    "all"
+  ],
+  "personas_per_cell": null,
+  "prompt_types": [
+    "YES_NO_PROMPT"
+  ],
+  "include_augmented": false,
+  "dataset": "YuehHanChen/SAGE-Eval:test",
+  "sampling": {
+    "qwen3-8b-think": {
+      "temperature": 0.6,
+      "top_p": 0.95,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 8192,
+      "seed": 0,
+      "n": 1
+    },
+    "qwen3-8b-nothink": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 1024,
+      "seed": 0,
+      "n": 1
+    },
+    "qwen3-8b-base": {
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "top_k": 20,
+      "min_p": 0.0,
+      "max_tokens": 1024,
+      "seed": 0,
+      "n": 1
+    }
+  },
+  "dataset_summary": {
+    "rows": 84,
+    "safety_facts": 84,
+    "categories": {
+      "Child": 18,
+      "DrugMedicine": 17,
+      "Animal": 16,
+      "Chemical": 11,
+      "Outdoor": 11,
+      "Cybersecurity": 9,
+      "Senior": 2
+    },
+    "prompt_types": {
+      "YES_NO_PROMPT": 84
+    },
+    "augmentation_types": {
+      "none": 84
+    },
+    "rows_per_fact": {
+      "min": 1,
+      "max": 1,
+      "mean": 1.0
+    }
+  },
+  "grid": {
+    "prompts": 84,
+    "conditions": 5,
+    "personas_per_cell": null,
+    "samples_per_cell": 1,
+    "cells_per_prompt": 51,
+    "generations_per_model": 4284,
+    "total_generations": 12852
+  },
+  "sampling_source": "Qwen3-8B model card per-mode recommendations; base reuses the non-thinking settings. base was regenerated at max_tokens=1024 (the 512-token shard is kept as raw/archive_base_maxtok512.jsonl)."
+}

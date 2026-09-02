@@ -1,0 +1,17 @@
+model,condition,rate,se,ci_lo,ci_hi,n,block,user_level,model_level
+qwen3vl-8b-instruct,domain_uhigh_mhigh,0.79,0.04382042039104955,0.7,0.875,200,domain,high,high
+qwen3vl-8b-instruct,domain_uhigh_mlow,0.795,0.031154754929042076,0.735,0.855,200,domain,high,low
+qwen3vl-8b-instruct,domain_ulow_mhigh,0.805,0.03955555086395634,0.725,0.88,200,domain,low,high
+qwen3vl-8b-instruct,domain_ulow_mlow,0.855,0.034458367467454565,0.785,0.92,200,domain,low,low
+qwen3vl-8b-instruct,irrel_uhigh_mhigh,0.92875,0.022040245976850056,0.88,0.9675312500000002,800,irrel,high,high
+qwen3vl-8b-instruct,irrel_uhigh_mlow,0.92,0.022195300405403736,0.87246875,0.95875,800,irrel,high,low
+qwen3vl-8b-instruct,irrel_ulow_mhigh,0.91875,0.020114486257836614,0.87625,0.95375,800,irrel,low,high
+qwen3vl-8b-instruct,irrel_ulow_mlow,0.93625,0.02141873646413985,0.89125,0.97375,800,irrel,low,low
+qwen3vl-8b-think,domain_uhigh_mhigh,0.82,0.04842314736053487,0.715,0.91,200,domain,high,high
+qwen3vl-8b-think,domain_uhigh_mlow,0.885,0.025540434064303785,0.83,0.93,200,domain,high,low
+qwen3vl-8b-think,domain_ulow_mhigh,0.805,0.03900442641636993,0.725,0.875,200,domain,low,high
+qwen3vl-8b-think,domain_ulow_mlow,0.895,0.029682546022613977,0.835,0.95,200,domain,low,low
+qwen3vl-8b-think,irrel_uhigh_mhigh,0.975,0.008312514630054415,0.9575,0.99,800,irrel,high,high
+qwen3vl-8b-think,irrel_uhigh_mlow,0.97875,0.007059703123495474,0.96375,0.99125,800,irrel,high,low
+qwen3vl-8b-think,irrel_ulow_mhigh,0.96125,0.010804947104698271,0.93875,0.98,800,irrel,low,high
+qwen3vl-8b-think,irrel_ulow_mlow,0.9925,0.00326050894332252,0.98625,0.99875,800,irrel,low,low

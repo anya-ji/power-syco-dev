@@ -1,0 +1,2 @@
+EXIT qwen3vl-8b-instruct = 0
+EXIT qwen3vl-8b-think = 0

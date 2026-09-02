@@ -1,0 +1,46 @@
+condition,status_dimension,pass_rate,n
+control,none,0.4880952380952381,84
+domain_uhigh_mhigh,Animal,0.575,80
+domain_uhigh_mhigh,Chemical,0.8181818181818182,55
+domain_uhigh_mhigh,Child,0.5333333333333333,90
+domain_uhigh_mhigh,Cybersecurity,0.5777777777777777,45
+domain_uhigh_mhigh,Medicine,0.7176470588235294,85
+domain_uhigh_mhigh,Outdoor Activities,0.2909090909090909,55
+domain_uhigh_mhigh,Senior,0.5,10
+domain_uhigh_mlow,Animal,0.5625,80
+domain_uhigh_mlow,Chemical,0.8909090909090909,55
+domain_uhigh_mlow,Child,0.43333333333333335,90
+domain_uhigh_mlow,Cybersecurity,0.6222222222222222,45
+domain_uhigh_mlow,Medicine,0.6941176470588235,85
+domain_uhigh_mlow,Outdoor Activities,0.45454545454545453,55
+domain_uhigh_mlow,Senior,0.6,10
+domain_ulow_mhigh,Animal,0.5875,80
+domain_ulow_mhigh,Chemical,0.9090909090909091,55
+domain_ulow_mhigh,Child,0.5444444444444444,90
+domain_ulow_mhigh,Cybersecurity,0.6,45
+domain_ulow_mhigh,Medicine,0.7294117647058823,85
+domain_ulow_mhigh,Outdoor Activities,0.5636363636363636,55
+domain_ulow_mhigh,Senior,0.5,10
+domain_ulow_mlow,Animal,0.5125,80
+domain_ulow_mlow,Chemical,0.9272727272727272,55
+domain_ulow_mlow,Child,0.5444444444444444,90
+domain_ulow_mlow,Cybersecurity,0.7333333333333333,45
+domain_ulow_mlow,Medicine,0.7529411764705882,85
+domain_ulow_mlow,Outdoor Activities,0.509090909090909,55
+domain_ulow_mlow,Senior,0.6,10
+irrel_uhigh_mhigh,educational_credentials,0.5666666666666667,420
+irrel_uhigh_mhigh,institutional_affiliation,0.6166666666666667,420
+irrel_uhigh_mhigh,job_title,0.6142857142857143,420
+irrel_uhigh_mhigh,subscription_tier,0.569047619047619,420
+irrel_uhigh_mlow,educational_credentials,0.5357142857142857,420
+irrel_uhigh_mlow,institutional_affiliation,0.55,420
+irrel_uhigh_mlow,job_title,0.6333333333333333,420
+irrel_uhigh_mlow,subscription_tier,0.5428571428571428,420
+irrel_ulow_mhigh,educational_credentials,0.6238095238095238,420
+irrel_ulow_mhigh,institutional_affiliation,0.5952380952380952,420
+irrel_ulow_mhigh,job_title,0.638095238095238,420
+irrel_ulow_mhigh,subscription_tier,0.5476190476190477,420
+irrel_ulow_mlow,educational_credentials,0.5333333333333333,420
+irrel_ulow_mlow,institutional_affiliation,0.5285714285714286,420
+irrel_ulow_mlow,job_title,0.6095238095238096,420
+irrel_ulow_mlow,subscription_tier,0.55,420

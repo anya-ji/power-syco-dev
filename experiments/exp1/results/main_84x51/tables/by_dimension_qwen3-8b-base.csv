@@ -1,0 +1,24 @@
+condition,status_dimension,pass_rate,n
+control,none,0.6309523809523809,84
+domain_high,Animal,0.7,80
+domain_high,Chemical,0.8909090909090909,55
+domain_high,Child,0.36666666666666664,90
+domain_high,Cybersecurity,0.6444444444444445,45
+domain_high,Medicine,0.6588235294117647,85
+domain_high,Outdoor Activities,0.509090909090909,55
+domain_high,Senior,0.4,10
+domain_low,Animal,0.6125,80
+domain_low,Chemical,0.8363636363636363,55
+domain_low,Child,0.4777777777777778,90
+domain_low,Cybersecurity,0.6666666666666666,45
+domain_low,Medicine,0.788235294117647,85
+domain_low,Outdoor Activities,0.5454545454545454,55
+domain_low,Senior,0.4,10
+irrel_high,educational_credentials,0.5833333333333334,420
+irrel_high,institutional_affiliation,0.5547619047619048,420
+irrel_high,job_title,0.6285714285714286,420
+irrel_high,subscription_tier,0.5357142857142857,420
+irrel_low,educational_credentials,0.5928571428571429,420
+irrel_low,institutional_affiliation,0.5738095238095238,420
+irrel_low,job_title,0.6261904761904762,420
+irrel_low,subscription_tier,0.569047619047619,420

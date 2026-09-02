@@ -1,0 +1,80 @@
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+Run directory: exp3/results/exp3_80x101
+NOTE: 1 item(s) share a gold note with another; prefixing with the item index so each stimulus is its own bootstrap cluster
+Loaded 16,160 judged rows — 80 items, 2 models
+
+Pass rate by gold label (pooled over every condition):
+  safe    0.957  (8,080 rows)
+  unsafe  0.694  (8,080 rows)
+  NB: opposite rubrics — unsafe = hazard caught, safe = not over-warned. Do not average them.
+
+Cluster bootstrap over 80 SaLAD items (B=4000)…
+
+model                 block   effect                  est             95% CI        p
+qwen3vl-8b-instruct   domain  user (high-low)      +0.024  [-0.014,+0.059]   0.2189  
+qwen3vl-8b-instruct   domain  model (high-low)     +0.034  [-0.002,+0.069]   0.0650  
+qwen3vl-8b-instruct   domain  interaction          -0.047  [-0.098,+0.000]   0.0585  
+qwen3vl-8b-instruct   irrel   user (high-low)      -0.006  [-0.021,+0.008]   0.3834  
+qwen3vl-8b-instruct   irrel   model (high-low)     -0.002  [-0.013,+0.008]   0.6598  
+qwen3vl-8b-instruct   irrel   interaction          +0.018  [-0.007,+0.043]   0.1700  
+qwen3vl-8b-think      domain  user (high-low)      +0.012  [-0.018,+0.041]   0.4319  
+qwen3vl-8b-think      domain  model (high-low)     +0.025  [-0.010,+0.059]   0.1755  
+qwen3vl-8b-think      domain  interaction          -0.015  [-0.070,+0.035]   0.6043  
+qwen3vl-8b-think      irrel   user (high-low)      -0.004  [-0.016,+0.008]   0.5299  
+qwen3vl-8b-think      irrel   model (high-low)     -0.003  [-0.017,+0.011]   0.6693  
+qwen3vl-8b-think      irrel   interaction          -0.001  [-0.023,+0.021]   0.9448  
+
+  95% CIs and two-sided p from resampling the items with replacement
+
+Same effects split by gold label — the halves should move oppositely if status shifts how much the model warns:
+model                 label   block   effect                  est        p
+qwen3vl-8b-instruct   SAFE    domain  user (high-low)      -0.022   0.4154  
+qwen3vl-8b-instruct   SAFE    domain  model (high-low)     +0.013   0.7303  
+qwen3vl-8b-instruct   SAFE    domain  interaction          -0.045   0.1695  
+qwen3vl-8b-instruct   SAFE    irrel   user (high-low)      +0.002   0.8123  
+qwen3vl-8b-instruct   SAFE    irrel   model (high-low)     -0.006   0.4804  
+qwen3vl-8b-instruct   SAFE    irrel   interaction          +0.034   0.0245  *
+qwen3vl-8b-instruct   UNSAFE  domain  user (high-low)      +0.070   0.0015  **
+qwen3vl-8b-instruct   UNSAFE  domain  model (high-low)     +0.055   0.0240  *
+qwen3vl-8b-instruct   UNSAFE  domain  interaction          -0.050   0.2209  
+qwen3vl-8b-instruct   UNSAFE  irrel   user (high-low)      -0.014   0.2429  
+qwen3vl-8b-instruct   UNSAFE  irrel   model (high-low)     +0.001   0.9803  
+qwen3vl-8b-instruct   UNSAFE  irrel   interaction          +0.001   0.9583  
+qwen3vl-8b-think      SAFE    domain  user (high-low)      +0.040   0.0825  
+qwen3vl-8b-think      SAFE    domain  model (high-low)     -0.020   0.4164  
+qwen3vl-8b-think      SAFE    domain  interaction          +0.050   0.0785  
+qwen3vl-8b-think      SAFE    irrel   user (high-low)      +0.004   0.3464  
+qwen3vl-8b-think      SAFE    irrel   model (high-low)     -0.005   0.0665  
+qwen3vl-8b-think      SAFE    irrel   interaction          +0.005   0.1775  
+qwen3vl-8b-think      UNSAFE  domain  user (high-low)      -0.015   0.4809  
+qwen3vl-8b-think      UNSAFE  domain  model (high-low)     +0.070   0.0065  **
+qwen3vl-8b-think      UNSAFE  domain  interaction          -0.080   0.0495  *
+qwen3vl-8b-think      UNSAFE  irrel   user (high-low)      -0.011   0.3344  
+qwen3vl-8b-think      UNSAFE  irrel   model (high-low)     -0.001   0.9528  
+qwen3vl-8b-think      UNSAFE  irrel   interaction          -0.008   0.7548  
+
+Each condition vs the no-role control (8 tests per model, uncorrected):
+  qwen3vl-8b-instruct    domain_ulow_mlow     -0.093 [-0.155,-0.030]  p=0.0055
+  qwen3vl-8b-instruct    irrel_uhigh_mlow     -0.060 [-0.113,-0.002]  p=0.0460
+  qwen3vl-8b-think       none differ from control
+
+Mixed-effects cross-check (pass ~ u*m + (1|item) + (1|prompt), REML)…
+  split by label: 2/24 disagree at .05; max |estimate| gap 1.1e-16
+  effects where the two methods disagree at .05: 1/12
+    qwen3vl-8b-instruct   domain  model (high-low)   boot p=0.0650  mixed p=0.0234
+  max |estimate| gap: 1.46e-16
+
+Figures -> exp3/results/exp3_80x101/figures
+  saved exp3_fig1_conditions.pdf
+  saved exp3_fig2_2x2_panels.pdf
+  saved exp3_fig3_effects.pdf
+  saved exp3_fig4_interaction.pdf
+  saved exp3_fig5_by_dimension.pdf
+  saved exp3_fig6_allpass.pdf
+  saved exp3_fig7_by_category.pdf
+  saved exp3_fig8_by_prompt_type.pdf
+
+Tables -> exp3/results/exp3_80x101/tables

@@ -7,13 +7,22 @@ from pathlib import Path
 import _bootstrap  # noqa: F401
 
 from sycophancy import plots
+from sycophancy.artifacts import RunPaths, latest_run
 from sycophancy.analysis import load_judged, write_tables
-from sycophancy.config import CONDITIONS, DEFAULT_MODELS, DEFAULT_RESULTS_DIR
+from sycophancy.config import (
+    CONDITIONS, DEFAULT_MODELS, DEFAULT_RESULTS_DIR, MODEL_VARIANTS, THINKING,
+    DEFAULT_EXPERIMENT, EXPERIMENTS, results_dir,
+)
 
 
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS_DIR)
+    ap.add_argument("--experiment", default=DEFAULT_EXPERIMENT, choices=EXPERIMENTS,
+                    help="which experiment directory to work in")
+    ap.add_argument("--results-dir", type=Path, default=None,
+                    help="override; defaults to <experiment>/results")
+    ap.add_argument("--run", type=Path, default=None,
+                    help="run directory (default: most recent under --results-dir)")
     ap.add_argument("--judged", type=Path, default=None,
                     help="default: <results-dir>/judged.jsonl")
     ap.add_argument("--figures-dir", type=Path, default=None,
@@ -27,15 +36,17 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    judged = args.judged or args.results_dir / "judged.jsonl"
-    figures_dir = args.figures_dir or args.results_dir / "figures"
+    paths = RunPaths(args.run) if args.run else latest_run(args.results_dir)
+    print(f"Run directory: {paths.root}")
+    judged = args.judged or paths.judged
+    figures_dir = args.figures_dir or paths.figures
 
     df = load_judged(judged)
     print(f"Loaded {len(df)} judged rows from {judged}")
     print(f"  {df['safety_fact'].nunique()} safety facts, "
           f"{df['prompt'].nunique()} prompts, {df['model'].nunique()} models")
 
-    tables = write_tables(df, args.results_dir, args.conditions)
+    tables = write_tables(df, paths.tables, args.conditions)
     stats = tables["stats"]
 
     ordered = [m for m in DEFAULT_MODELS if m in set(df["model"])]
@@ -44,19 +55,32 @@ def main() -> None:
     for model in ordered:
         idx = stats[stats["model"] == model].set_index("condition")
         print(f"\n=== {model} ===")
-        print(idx[["rate", "ci95", "sage_score", "n"]].round(3).to_string())
+        cols = [c for c in ["rate", "ci95", "all_pass_rate", "all_pass_rate_k5", "n"]
+                if c in idx.columns]
+        print(idx[cols].round(3).to_string())
         c = tables["contrasts"][model]
         print(f"  domain gap (high-low):    {c.domain_gap:+.3f}")
         print(f"  irrel. gap (high-low):    {c.irrel_gap:+.3f}")
         print(f"  relevance (dom-irr high): {c.relevance_gap:+.3f}")
 
+    print("\n  all_pass_rate    = every persona for a fact passed (raw; cell sizes differ)")
+    print("  all_pass_rate_k5 = same over 5 matched personas -- use this across conditions")
+
     diag = tables["diagnostics"]
     if not diag.empty:
         print("\n=== Generation / judge diagnostics ===")
         print(diag.round(4).to_string())
-        if "truncated" in diag.columns and diag["truncated"].max() > 0.01:
-            print("  WARNING: non-trivial truncation. A thinking run cut off before "
-                  "</think> has no answer and is scored 'fail' -- raise --max-tokens.")
+        # Truncation only destroys the answer in thinking mode (cut off before
+        # </think> leaves nothing to judge). Elsewhere it merely clips a tail.
+        if "truncated" in diag.columns:
+            for model, rate in diag["truncated"].items():
+                if rate < 0.05:
+                    continue
+                thinking = MODEL_VARIANTS.get(model) and MODEL_VARIANTS[model].mode == THINKING
+                note = ("cut off before </think> leaves no answer, which the judge "
+                        "fails -- raise --max-tokens" if thinking else
+                        "responses are clipped; check whether verdicts hinge on the tail")
+                print(f"  WARNING: {model} truncated {rate:.1%} -- {note}")
 
     consistency = tables.get("sample_consistency")
     if consistency is not None and not consistency.empty:
@@ -76,9 +100,9 @@ def main() -> None:
 
     if not args.no_figures:
         print(f"\nFigures -> {figures_dir}")
-        plots.make_all(stats, tables, figures_dir, ordered, args.primary_model)
+        plots.make_all(stats, tables, figures_dir, ordered, args.primary_model, df=df)
 
-    print(f"\nTables -> {args.results_dir}")
+    print(f"\nTables -> {paths.tables}")
 
 
 if __name__ == "__main__":
